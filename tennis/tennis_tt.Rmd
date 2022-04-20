@@ -1,0 +1,31 @@
+---
+title: "Tennis Grand Slam"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+player_dob <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-04-09/player_dob.csv")
+
+grand_slams <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-04-09/grand_slams.csv") %>%
+  arrange(year, grand_slam, name, gender) %>%
+  distinct(year, grand_slam, name, .keep_all = TRUE)
+
+grand_slam_timeline <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-04-09/grand_slam_timeline.csv")
+```
+
+
+```{r}
+grand_slams %>%
+  count(year, gender) %>%
+  arrange(desc(year))
+```
+
