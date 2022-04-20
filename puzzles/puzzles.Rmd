@@ -1,0 +1,131 @@
+---
+title: "Crossword puzzle"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(lubridate)
+library(scales)
+
+theme_set(theme_light())
+```
+
+## R Markdown
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+## Load weekly data
+
+```{r load_data, echo=FALSE}
+big_dave <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-04-19/big_dave.csv')
+times <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-04-19/times.csv')
+```
+
+```{r, echo=FALSE}
+clues <- times %>%
+  bind_rows(big_dave) %>%
+  select(-rowid) %>%
+  extract(clue, c("clue", "lengths"), "(.*) \\((.*)\\)") %>%
+  mutate(definition_length = str_length(definition)) %>%
+  mutate(year = year(puzzle_date),
+         definition_index = str_locate(clue, fixed(definition))[, 1],
+         definition_pos = (definition_index - 1) / (str_length(clue) - str_length(definition)))
+
+clues
+```
+
+
+### Initial processing
+
+First let's see the puzzles by month
+
+```{r processing, echo=FALSE}
+clues %>%
+  count(puzzle_date = floor_date(puzzle_date, "month"), source) %>%
+  ggplot(aes(puzzle_date, n, fill = source)) +
+  geom_col()
+```
+
+and then quarter
+```{r, echo=FALSE}
+clues %>%
+  count(puzzle_date = floor_date(puzzle_date, "quarter"), source) %>%
+  ggplot(aes(puzzle_date, n, fill = source)) +
+  geom_col()
+```
+What is the distribution of the definitions in the clues?
+```{r}
+clues %>%
+  ggplot(aes(definition_pos)) +
+  geom_histogram(boundary = 0, binwidth = 0.05)
+```
+This histogram tells us that a trick to solving cryptograms puzzles is that the definition is most likely at the beginning or the end of the clue.
+
+```{r}
+clues %>%
+  group_by(year, source) %>%
+  summarize(pct_missing = mean(is.na(definition_pos))) %>%
+  ggplot(aes(year, pct_missing, color = source)) + 
+  geom_line()
+```
+
+```{r}
+clues %>%
+  filter(!is.na(definition_pos)) %>%
+  group_by(year, source) %>%
+  summarize(pct_start_or_end = mean(definition_pos %in% c(0, 1)),
+            n = n()) %>%
+  filter(n >= 1000) %>%
+  ggplot(aes(year, pct_start_or_end, color = source)) + 
+  geom_line()
+```
+It looks like Big Dave is more likely to have the definition be located at the start or the end of the clue.
+
+```{r}
+clues %>%
+  filter(!is.na(definition_pos),
+         source == "bigdave44") %>%
+  mutate(start_end = definition_pos %in% c(0, 1)) %>%
+  glm(start_end ~ year, data = ., family = "binomial") %>%
+  summary()
+```
+
+```{r}
+clues %>%
+  ggplot(aes(definition_length, fill = source)) + 
+  geom_histogram() + 
+  facet_wrap(~ source, ncol = 1)
+```
+
+```{r}
+clues %>%
+  ggplot(aes(definition_length, str_length(answer))) + 
+  geom_point()
+```
+
+```{r}
+clues %>%
+  filter(!is.na(definition_pos)) %>%
+  count(definition_length, answer_length = str_length(answer)) %>%
+  ggplot(aes(definition_length, answer_length, fill = n)) + 
+  geom_tile()
+
+clues %>%
+  filter(!is.na(definition_pos),
+         !is.na(answer)) %>%
+  summarize(cor = cor(definition_length, str_length(answer)))
+```
+```{r}
+clues %>%
+  filter(!is.na(definition_pos),
+         !is.na(answer)) %>%
+  with(cor.test(definition_length, str_length(answer)))
+```
+
+
+
+
+
