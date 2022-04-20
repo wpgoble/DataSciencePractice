@@ -30,7 +30,7 @@ william %>%
   ggplot(aes(year, n)) + 
   geom_line(colour = "#82cafc") +
   geom_vline(xintercept = 1994, linetype="dashed", 
-                color = "#ca6641", size = .5) +
+             color = "#ca6641", size = .5) +
   ggtitle("Popularity of William") +
   xlab("Year") + ylab("Number")
 ```
@@ -116,5 +116,34 @@ gobles %>%
   geom_line() + 
   ggtitle("Popularity of Goble Names") +
   xlab("Years") + ylab("Number")
+```
+
+```{r}
+sex_pal <- c("#ffb7ce", "#82cafc")
+
+d <- babynames %>%
+  count(year, sex, name = "n_names")
+d_max <- d %>% 
+  group_by(sex) %>%
+  filter(n_names == max(n_names))
+
+d %>%
+  ggplot(aes(x = year, y = n_names, color = sex)) +
+  geom_line(size = 1) + 
+  geom_linerange(
+    data = d_max,
+    aes(ymin = 0, ymax = n_names, xmin = year, xmax = year, color = sex),
+    lty = 2, size = 1,
+    show.legend = FALSE
+  ) + 
+  geom_text(
+    data = d_max,
+    aes(x = year, y = c(16000, 5000), label = year),
+    hjust = 0, nudge_x = 1, 
+    show.legend = FALSE
+  ) + 
+  labs(title = "Number of unique names", y = NULL, color = NULL) +
+  scale_color_manual(values = sex_pal) +
+  theme(legend.position = c(0.2, 0.7))
 ```
 
