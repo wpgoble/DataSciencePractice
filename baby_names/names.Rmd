@@ -1,0 +1,120 @@
+---
+title: "baby_names"
+author: "William Goble"
+date: "4/20/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r cars}
+library(tidyverse)
+library(lubridate)
+library(scales)
+
+theme_set(theme_light())
+```
+
+```{r}
+babynames <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2022/2022-03-22/babynames.csv')
+```
+
+```{r}
+william <- babynames %>% filter(name == "William" & sex == "M")
+
+william %>%
+  ggplot(aes(year, n)) + 
+  geom_line(colour = "#82cafc") +
+  geom_vline(xintercept = 1994, linetype="dashed", 
+                color = "#ca6641", size = .5) +
+  ggtitle("Popularity of William") +
+  xlab("Year") + ylab("Number")
+```
+
+```{r}
+johnna <- babynames %>% filter(name == "Johnna" & sex == "F")
+
+johnna %>%
+  ggplot(aes(year, n)) + 
+  geom_line(colour = "#ffb7ce") + 
+  geom_vline(xintercept = 1991, linetype="dashed", 
+                color = "#ca6641", size = .5) +
+  ggtitle("Popularity of Johnna") +
+  xlab("Year") + ylab("Number")
+```
+
+```{r}
+williamjohnna <- william %>%
+  bind_rows(johnna)
+
+our_colors <- c("#ffb7ce", "#82cafc")
+
+williamjohnna %>%
+  ggplot(aes(year, n, colour = name)) + 
+  scale_colour_manual(values = our_colors) +
+  geom_line() + 
+  facet_wrap(~ name, ncol = 1) +
+  ggtitle("Popularity of names") +
+  xlab("Years") + ylab("Number") +
+  theme(legend.position="none")
+```
+
+```{r}
+charles <- babynames %>% filter(name == "Charles" & sex == "M")
+catherine <- babynames %>% filter(name == "Catherine" & sex == "F")
+devin <- babynames %>% filter(name == "Devin" & sex == "F")
+mark <- babynames %>% filter(name == "Mark" & sex == "M")
+alexis <- babynames %>% filter(name == "Alexis" & sex == "F")
+mary <- babynames %>% filter(name == "Mary" & sex == "F")
+john <- babynames %>% filter(name == "John" & sex == "M")
+```
+
+```{r}
+goble_kids <- william %>%
+  bind_rows(catherine) %>%
+  bind_rows(charles) 
+
+goble_colors <- c("#caa0ff", "#4f9153", "#6a79f7")
+
+goble_kids %>%
+  ggplot(aes(year, n, colour = name)) + 
+  scale_colour_manual(values = goble_colors) +
+  geom_line() + 
+  ggtitle("Popularity of Goble Names") +
+  xlab("Years") + ylab("Number") +
+  facet_wrap(~ name, ncol = 1) +
+  theme(legend.position="none")
+```
+
+```{r}
+barnaby_girls <- johnna %>%
+  bind_rows(devin)
+
+barnaby_girls %>%
+  ggplot(aes(year, n, colour = name)) + 
+  geom_line() + 
+  ggtitle("Popularity of Barnaby Children Names") +
+  xlab("Years") + ylab("Number")
+```
+
+```{r}
+gobles <- william %>%
+  bind_rows(catherine) %>%
+  bind_rows(charles) %>%
+  bind_rows(mary) %>%
+  bind_rows(john)
+
+goble_colors <- c("#caa0ff", "#4f9153", "#6a79f7", "#f4320c", "#9b8f55")
+
+gobles %>%
+  ggplot(aes(year, n, colour = name)) + 
+  scale_colour_manual(values = goble_colors) +
+  geom_line() + 
+  ggtitle("Popularity of Goble Names") +
+  xlab("Years") + ylab("Number")
+```
+
